@@ -1,9 +1,8 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace APICatalogo.Controllers
 {
@@ -18,15 +17,14 @@ namespace APICatalogo.Controllers
             _context = context;
         }
 
-        // GET: /Produtos/primeiro
-        [HttpGet("primeiro")]
-        [HttpGet("teste")]
-        [HttpGet("/primeiro")]
-        [HttpGet("{valor:alpha:lenght(5)}")]
+        [HttpGet("primeiro")] // /api/produtos/primeiro
+        [HttpGet("teste")]    // /api/produtos/teste
+        [HttpGet("/primeiro")] // rota absoluta: /primeiro (ignora "api/produtos")
+        [HttpGet("{valor:alpha:length(5)}")] // aceita strings apenas com 5 letras
         public ActionResult<Produto> GetPrimeiro(string valor)
         {
             var teste = valor;
-            var produto = _context.Produtos.FirstOrDefault();
+            var produto = _context.Produtos.FirstOrDefault(); // Busca o primeiro produto
 
             if (produto is null)
             {
@@ -36,11 +34,11 @@ namespace APICatalogo.Controllers
             return Ok(produto);
         }
 
-        // GET: /Produtos
+        // api/produtos
         [HttpGet]
-        public ActionResult<IEnumerable<Produto>> Get()
+        public async Task<ActionResult<IEnumerable<Produto>>> Get()
         {
-            var produtos = _context.Produtos.Take(10).AsNoTracking().ToList();
+            var produtos = await _context.Produtos.Take(10).AsNoTracking().ToListAsync(); // Consulta assíncrona
 
             if (produtos == null || !produtos.Any())
             {
@@ -50,12 +48,11 @@ namespace APICatalogo.Controllers
             return Ok(produtos);
         }
 
-        // GET: /Produtos/5
-        [HttpGet("{id:int:min(1)}/{nome=Caderno}", Name = "ObterProduto")]
-        public ActionResult<Produto> Get(int id, string nome)
+        // api/produtos/1
+        [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
+        public async Task<ActionResult<Produto>> Get([FromQuery] int id)
         {
-            var parametro = nome;
-            var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
+            var produto = await _context.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.ProdutoId == id); // Busca assíncrona
 
             if (produto == null)
             {
@@ -65,7 +62,7 @@ namespace APICatalogo.Controllers
             return Ok(produto);
         }
 
-        // POST: /Produtos
+        // api/produtos
         [HttpPost]
         public ActionResult Post(Produto produto)
         {
@@ -75,13 +72,12 @@ namespace APICatalogo.Controllers
             }
 
             _context.Produtos.Add(produto);
-            _context.SaveChanges();
+            _context.SaveChanges(); // Poderia usar SaveChangesAsync para método assíncrono
 
-            // Retorna o produto criado com a rota para consulta
             return CreatedAtRoute("ObterProduto", new { id = produto.ProdutoId }, produto);
         }
 
-        // PUT: /Produtos/5
+        // api/produtos/1
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Produto produto)
         {
@@ -90,17 +86,17 @@ namespace APICatalogo.Controllers
                 return BadRequest("ID do produto não confere");
             }
 
-            _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
+            _context.Entry(produto).State = EntityState.Modified; // Marca toda a entidade como modificada
+            _context.SaveChanges(); // Poderia usar SaveChangesAsync para método assíncrono
 
             return Ok(produto);
         }
 
-        // DELETE: /Produtos/5
+        // api/produtos/1
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id); // Busca produto
 
             if (produto == null)
             {
@@ -108,7 +104,7 @@ namespace APICatalogo.Controllers
             }
 
             _context.Produtos.Remove(produto);
-            _context.SaveChanges();
+            _context.SaveChanges(); // Poderia usar SaveChangesAsync para método assíncrono
 
             return Ok(produto);
         }

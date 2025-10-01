@@ -1,12 +1,11 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace APICatalogo.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CategoriasController : ControllerBase
     {
@@ -17,12 +16,17 @@ namespace APICatalogo.Controllers
             _context = context;
         }
 
+        // api/categorias/produtos
         [HttpGet("produtos")]
         public ActionResult<IEnumerable<Categoria>> GetCategoriasProduto()
         {
             try
             {
-                return _context.Categorias.Include(p => p.Produtos).Where(categoria => categoria.CategoriaId <= 5).AsNoTracking().ToList();
+                return _context.Categorias
+                               .Include(p => p.Produtos) // Carrega a coleção de Produtos relacionada
+                               .Where(categoria => categoria.CategoriaId <= 5)
+                               .AsNoTracking() // Melhor performance quando não vai alterar a entidade
+                               .ToList(); // Consulta síncrona
             }
             catch (Exception)
             {
@@ -30,13 +34,13 @@ namespace APICatalogo.Controllers
             }
         }
 
-        // GET: /Categorias
+        // api/categorias
         [HttpGet]
         public ActionResult<IEnumerable<Categoria>> Get()
         {
             try
             {
-                return _context.Categorias.AsNoTracking().ToList();
+                return _context.Categorias.AsNoTracking().ToList(); // Consulta síncrona
             }
             catch (Exception)
             {
@@ -44,13 +48,13 @@ namespace APICatalogo.Controllers
             }
         }
 
-        // GET: /Categorias/5
+        // api/categorias/1
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public ActionResult<Categoria> Get(int id)
         {
             try
             {
-                var categoria = _context.Categorias.AsNoTracking().FirstOrDefault(p => p.CategoriaId == id);
+                var categoria = _context.Categorias.AsNoTracking().FirstOrDefault(p => p.CategoriaId == id); // Consulta síncrona
 
                 if (categoria == null)
                 {
@@ -65,7 +69,7 @@ namespace APICatalogo.Controllers
             }
         }
 
-        // POST: /Categorias
+        // api/categorias
         [HttpPost]
         public ActionResult Post(Categoria categoria)
         {
@@ -77,9 +81,8 @@ namespace APICatalogo.Controllers
                 }
 
                 _context.Categorias.Add(categoria);
-                _context.SaveChanges();
+                _context.SaveChanges(); // Poderia usar SaveChangesAsync para método assíncrono
 
-                // Retorna o categoria criado com a rota para consulta
                 return CreatedAtRoute("ObterCategoria", new { id = categoria.CategoriaId }, categoria);
             }
             catch (Exception)
@@ -88,7 +91,7 @@ namespace APICatalogo.Controllers
             }
         }
 
-        // PUT: /Categorias/5
+        // api/categorias/1
         [HttpPut("{id:int}")]
         public ActionResult Put(int id, Categoria categoria)
         {
@@ -99,8 +102,8 @@ namespace APICatalogo.Controllers
                     return BadRequest("ID do categoria não confere");
                 }
 
-                _context.Entry(categoria).State = EntityState.Modified;
-                _context.SaveChanges();
+                _context.Entry(categoria).State = EntityState.Modified; // Marca toda a entidade como modificada
+                _context.SaveChanges(); // Poderia usar SaveChangesAsync para método assíncrono
 
                 return Ok(categoria);
             }
@@ -110,13 +113,13 @@ namespace APICatalogo.Controllers
             }
         }
 
-        // DELETE: /Ca/5
+        // api/categorias/1
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
             try
             {
-                var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
+                var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id); // Busca categoria
 
                 if (categoria == null)
                 {
@@ -124,7 +127,7 @@ namespace APICatalogo.Controllers
                 }
 
                 _context.Categorias.Remove(categoria);
-                _context.SaveChanges();
+                _context.SaveChanges(); // Poderia usar SaveChangesAsync para método assíncrono
 
                 return Ok(categoria);
             }
