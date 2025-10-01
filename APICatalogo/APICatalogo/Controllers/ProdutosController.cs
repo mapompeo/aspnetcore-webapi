@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace APICatalogo.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class ProdutosController : Controller
     {
@@ -18,11 +18,29 @@ namespace APICatalogo.Controllers
             _context = context;
         }
 
+        // GET: /Produtos/primeiro
+        [HttpGet("primeiro")]
+        [HttpGet("teste")]
+        [HttpGet("/primeiro")]
+        [HttpGet("{valor:alpha:lenght(5)}")]
+        public ActionResult<Produto> GetPrimeiro(string valor)
+        {
+            var teste = valor;
+            var produto = _context.Produtos.FirstOrDefault();
+
+            if (produto is null)
+            {
+                return NotFound("Produto não encontrado");
+            }
+
+            return Ok(produto);
+        }
+
         // GET: /Produtos
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            var produtos = _context.Produtos.ToList();
+            var produtos = _context.Produtos.Take(10).AsNoTracking().ToList();
 
             if (produtos == null || !produtos.Any())
             {
@@ -33,10 +51,11 @@ namespace APICatalogo.Controllers
         }
 
         // GET: /Produtos/5
-        [HttpGet("{id:int}", Name = "ObterProduto")]
-        public ActionResult<Produto> Get(int id)
+        [HttpGet("{id:int:min(1)}/{nome=Caderno}", Name = "ObterProduto")]
+        public ActionResult<Produto> Get(int id, string nome)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            var parametro = nome;
+            var produto = _context.Produtos.AsNoTracking().FirstOrDefault(p => p.ProdutoId == id);
 
             if (produto == null)
             {
