@@ -1,6 +1,7 @@
 using APICatalogo.Context;
-using APICatalogo.Services;
+using APICatalogo.Filters;
 using APICatalogo.Logging;
+using APICatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -15,7 +16,11 @@ builder.Logging.AddProvider(new CustomLoggerProvider(
     })
 );
 
-builder.Services.AddControllers().AddJsonOptions(options =>
+builder.Services.AddControllers(options =>
+{
+    object value = options.Filters.Add(typeof(ApiExceptionFilter));
+})
+.AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
