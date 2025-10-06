@@ -1,7 +1,6 @@
-﻿using APICatalogo.Context;
+﻿using APICatalogo.DTOs;
 using APICatalogo.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace APICatalogo.Controllers;
 
@@ -9,76 +8,151 @@ namespace APICatalogo.Controllers;
 [ApiController]
 public class CategoriasController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IUnitOfWork _uof;
     private readonly ILogger<CategoriasController> _logger;
 
-    public CategoriasController(AppDbContext context, ILogger<CategoriasController> logger)
+    public CategoriasController(IUnitOfWork uof,
+        ILogger<CategoriasController> logger)
     {
-        _context = context;
+
         _logger = logger;
+        _uof = uof;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Categoria>>> Get()
+    public ActionResult<IEnumerable<CategoriaDTO>> Get()
     {
-        return await _context.Categorias.AsNoTracking().ToListAsync();
+        var categorias = _uof.CategoriaRepository.GetAll();
+
+        if (categorias is null)
+            return NotFound("Não existem categorias...");
+
+        // Converte cada categoria para CategoriaDto
+        // e inclui em CategoriasDto 
+        var categoriasDto = new List<CategoriaDTO>();
+        foreach (var categoria in categorias)
+        {
+            var categoriaDto = new CategoriaDTO
+            {
+                CategoriaId = categoria.CategoriaId,
+                Nome = categoria.Nome,
+                ImagemUrl = categoria.ImagemUrl
+            };
+            categoriasDto.Add(categoriaDto);
+        }
+
+        return Ok(categoriasDto);
     }
 
     [HttpGet("{id:int}", Name = "ObterCategoria")]
-    public ActionResult<Categoria> Get(int id)
+    public ActionResult<CategoriaDTO> Get(int id)
     {
-        var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
+        var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
 
-        if (categoria == null)
+        if (categoria is null)
         {
             _logger.LogWarning($"Categoria com id= {id} não encontrada...");
             return NotFound($"Categoria com id= {id} não encontrada...");
         }
-        return Ok(categoria);
+
+        //converte Categoria para CategoriaDTO
+        var categoriaDto = new CategoriaDTO()
+        {
+            CategoriaId = categoria.CategoriaId,
+            Nome = categoria.Nome,
+            ImagemUrl = categoria.ImagemUrl
+        };
+
+        return Ok(categoriaDto);
     }
 
     [HttpPost]
-    public ActionResult Post(Categoria categoria)
+    public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
     {
-        if (categoria is null)
+        if (categoriaDto is null)
         {
             _logger.LogWarning($"Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
 
-        _context.Categorias.Add(categoria);
-        _context.SaveChanges();
+        //Converte CatgoriaDTO para Categoria
+        var categoria = new Categoria()
+        {
+            CategoriaId = categoriaDto.CategoriaId,
+            Nome = categoriaDto.Nome,
+            ImageUrl = categoriaDto.ImagemUrl
+        };
 
-        return new CreatedAtRouteResult("ObterCategoria", new { id = categoria.CategoriaId }, categoria);
+        var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
+        _uof.Commit();
+
+        //converte Categoria para CategoriaDTO
+        var novaCategoriaDto = new CategoriaDTO()
+        {
+            CategoriaId = categoriaCriada.CategoriaId,
+            Nome = categoriaCriada.Nome,
+            ImagemUrl = categoriaCriada.ImagemUrl
+        };
+
+        return new CreatedAtRouteResult("ObterCategoria",
+            new { id = novaCategoriaDto.CategoriaId },
+            novaCategoriaDto);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult Put(int id, Categoria categoria)
+    public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
     {
-        if (id != categoria.CategoriaId)
+        if (id != categoriaDto.CategoriaId)
         {
             _logger.LogWarning($"Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
 
-        _context.Entry(categoria).State = EntityState.Modified;
-        _context.SaveChanges();
-        return Ok(categoria);
+        //Converte CatgoriaDTO para Categoria
+        var categoria = new Categoria()
+        {
+            CategoriaId = categoriaDto.CategoriaId,
+            Nome = categoriaDto.Nome,
+            ImageUrl = categoriaDto.ImagemUrl
+        };
+
+        var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
+        _uof.Commit();
+
+        //converte Categoria para CategoriaDTO
+        var categoriaAtualizadaDto = new CategoriaDTO()
+        {
+            CategoriaId = categoriaAtualizada.CategoriaId,
+            Nome = categoriaAtualizada.Nome,
+            ImagemUrl = categoriaAtualizada.ImagemUrl
+        };
+
+        return Ok(categoriaAtualizadaDto);
     }
 
-    [HttpDelete("{id:int}")]
-    public ActionResult Delete(int id)
-    {
-        var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
 
-        if (categoria == null)
+    [HttpDelete("{id:int}")]
+    public ActionResult<CategoriaDTO> Delete(int id)
+    {
+        var categoria = _uof.CategoriaRepository.Get(c => c.CategoriaId == id);
+
+        if (categoria is null)
         {
             _logger.LogWarning($"Categoria com id={id} não encontrada...");
             return NotFound($"Categoria com id={id} não encontrada...");
         }
 
-        _context.Categorias.Remove(categoria);
-        _context.SaveChanges();
-        return Ok(categoria);
+        var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
+        _uof.Commit();
+
+        //converte Categoria para CategoriaDTO
+        var categoriaExcluidaDto = new CategoriaDTO()
+        {
+            CategoriaId = categoriaExcluida.CategoriaId,
+            Nome = categoriaExcluida.Nome,
+            ImagemUrl = categoriaExcluida.ImagemUrl
+        };
+
+        return Ok(categoriaExcluidaDto);
     }
 }
