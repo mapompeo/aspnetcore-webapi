@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 Env.Load(); // carrega .env na raiz do repositório (não comitar .env)
+Console.WriteLine($"[DEBUG] LOG_PATH => {Environment.GetEnvironmentVariable("LOG_PATH")}");
 
 var builder = WebApplication.CreateBuilder(args);
 
