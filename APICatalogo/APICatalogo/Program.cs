@@ -1,3 +1,5 @@
+using System;
+using DotNetEnv;
 using APICatalogo.Context;
 using APICatalogo.Filters;
 using APICatalogo.Logging;
@@ -6,6 +8,8 @@ using APICatalogo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+
+Env.Load(); // carrega .env na raiz do repositório (não comitar .env)
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,12 +33,17 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+// Prioriza variável de ambiente .env antes do appsettings.json
+string mySqlConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Permite expor o caminho do log para os filtros / provedores lerem
+builder.Configuration["LogPath"] = Environment.GetEnvironmentVariable("LOG_PATH") ?? "APICatalogo/log/log.txt";
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 builder.Services.AddTransient<IMeuServico, MeuServico>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -43,6 +52,16 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 
 var app = builder.Build();
+
+// Comando especial para inicializar o BD e popular (conforme implementado)
+if (args.Contains("--init-db"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbInitializer.InitializeAsync(db);
+    Console.WriteLine("Banco de dados inicializado e populado com sucesso!");
+    return;
+}
 
 if (app.Environment.IsDevelopment())
 {
