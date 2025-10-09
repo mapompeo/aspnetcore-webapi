@@ -6,18 +6,28 @@ namespace APICatalogo.Filters;
 public class ApiExceptionFilter : IExceptionFilter
 {
     private readonly ILogger<ApiExceptionFilter> _logger;
+
     public ApiExceptionFilter(ILogger<ApiExceptionFilter> logger)
     {
         _logger = logger;
     }
+
     public void OnException(ExceptionContext context)
     {
+        var exception = context.Exception;
 
-        _logger.LogError(context.Exception, "Ocorreu um exceção não tratada: Status Code 500");
+        _logger.LogError(exception, "Exceção não tratada capturada pelo filtro global.");
 
-        context.Result = new ObjectResult("Ocorreu um problema ao tratar a sua solicitação: Status Code 500")
+        context.Result = new ObjectResult(new
         {
-            StatusCode = StatusCodes.Status500InternalServerError,
+            message = exception.Message,
+            stackTrace = exception.StackTrace
+        })
+        {
+            StatusCode = 500
         };
+
+        context.ExceptionHandled = true;
     }
 }
+
