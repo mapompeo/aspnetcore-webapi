@@ -12,10 +12,8 @@ public class CategoriasController : ControllerBase
     private readonly IUnitOfWork _uof;
     private readonly ILogger<CategoriasController> _logger;
 
-    public CategoriasController(IUnitOfWork uof,
-        ILogger<CategoriasController> logger)
+    public CategoriasController(IUnitOfWork uof, ILogger<CategoriasController> logger)
     {
-
         _logger = logger;
         _uof = uof;
     }
@@ -28,8 +26,7 @@ public class CategoriasController : ControllerBase
         if (categorias is null)
             return NotFound("Não existem categorias...");
 
-        var categoriasDto = categorias.ToCategoriaDTOList();
-
+        var categoriasDto = categorias!.ToCategoriaDTOList();
         return Ok(categoriasDto);
     }
 
@@ -40,12 +37,11 @@ public class CategoriasController : ControllerBase
 
         if (categoria is null)
         {
-            _logger.LogWarning($"Categoria com id= {id} não encontrada...");
-            return NotFound($"Categoria com id= {id} não encontrada...");
+            _logger.LogWarning($"Categoria com id={id} não encontrada...");
+            return NotFound($"Categoria com id={id} não encontrada...");
         }
 
-        var categoriaDto = categoria.ToCategoriaDTO();
-
+        var categoriaDto = categoria!.ToCategoriaDTO();
         return Ok(categoriaDto);
     }
 
@@ -54,16 +50,15 @@ public class CategoriasController : ControllerBase
     {
         if (categoriaDto is null)
         {
-            _logger.LogWarning($"Dados inválidos...");
+            _logger.LogWarning("Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
 
-        var categoria = categoriaDto.ToCategoria();
-
-        var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
+        var categoria = categoriaDto!.ToCategoria();
+        var categoriaCriada = _uof.CategoriaRepository.Create(categoria!);
         _uof.Commit();
 
-        var novaCategoriaDto = categoriaCriada.ToCategoriaDTO(); ;
+        var novaCategoriaDto = categoriaCriada!.ToCategoriaDTO();
 
         return new CreatedAtRouteResult("ObterCategoria",
             new { id = novaCategoriaDto.CategoriaId },
@@ -75,19 +70,17 @@ public class CategoriasController : ControllerBase
     {
         if (id != categoriaDto.CategoriaId)
         {
-            _logger.LogWarning($"Dados inválidos...");
+            _logger.LogWarning("Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
-        var categoria = categoriaDto.ToCategoria();
 
-        var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
+        var categoria = categoriaDto!.ToCategoria();
+        var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria!);
         _uof.Commit();
 
-        var categoriaAtualizadaDto = categoriaAtualizada.ToCategoriaDTO();
-
+        var categoriaAtualizadaDto = categoriaAtualizada!.ToCategoriaDTO();
         return Ok(categoriaAtualizadaDto);
     }
-
 
     [HttpDelete("{id:int}")]
     public ActionResult<CategoriaDTO> Delete(int id)
@@ -100,11 +93,10 @@ public class CategoriasController : ControllerBase
             return NotFound($"Categoria com id={id} não encontrada...");
         }
 
-        var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
+        var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria!);
         _uof.Commit();
 
-        var categoriaExcluidaDto = categoriaExcluida.ToCategoriaDTO(); ;
-
+        var categoriaExcluidaDto = categoriaExcluida!.ToCategoriaDTO();
         return Ok(categoriaExcluidaDto);
     }
 }

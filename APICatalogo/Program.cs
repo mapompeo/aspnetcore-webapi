@@ -14,6 +14,7 @@ Console.WriteLine($"[DEBUG] LOG_PATH => {Environment.GetEnvironmentVariable("LOG
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuração de logging customizado
 builder.Logging.ClearProviders();
 builder.Logging.AddProvider(new CustomLoggerProvider(
     new CustomLoggerProviderConfiguration
@@ -22,25 +23,28 @@ builder.Logging.AddProvider(new CustomLoggerProvider(
     })
 );
 
+// Controllers + filtros + JSON
 builder.Services.AddControllers(options =>
 {
-    object value = options.Filters.Add(typeof(ApiExceptionFilter));
+    options.Filters.Add(typeof(ApiExceptionFilter));
 })
 .AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
+})
+.AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Prioriza variável de ambiente .env antes do appsettings.json
-string mySqlConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+// String de conexão (prioriza variável de ambiente)
+string? envConnection = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+string mySqlConnection = envConnection ?? builder.Configuration.GetConnectionString("DefaultConnection")!;
 
-// Permite expor o caminho do log para os filtros / provedores lerem
+// Caminho de log
 builder.Configuration["LogPath"] = Environment.GetEnvironmentVariable("LOG_PATH") ?? "APICatalogo/log/log.txt";
 
+// Configuração do DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
 
@@ -54,7 +58,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 var app = builder.Build();
 
-// Comando especial para inicializar o BD e popular (conforme implementado)
+// Inicialização opcional do banco de dados
 if (args.Contains("--init-db"))
 {
     using var scope = app.Services.CreateScope();
