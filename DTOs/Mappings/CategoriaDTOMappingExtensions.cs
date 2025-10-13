@@ -1,4 +1,4 @@
-﻿using APICatalogo.Models;
+using APICatalogo.Models;
 
 namespace APICatalogo.DTOs.Mappings;
 

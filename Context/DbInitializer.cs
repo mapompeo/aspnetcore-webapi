@@ -7,7 +7,7 @@ public static class DbInitializer
 {
     public static async Task InitializeAsync(AppDbContext context)
     {
-        // Aplica migrations se existirem, caso contrário cria o banco
+        // Aplica migrations se existirem, caso contrï¿½rio cria o banco
         if (context.Database.GetPendingMigrations().Any())
         {
             await context.Database.MigrateAsync();
@@ -17,16 +17,16 @@ public static class DbInitializer
             await context.Database.EnsureCreatedAsync();
         }
 
-        // Popula apenas se não houver dados
+        // Popula apenas se nï¿½o houver dados
         if (!context.Categorias!.Any())
         {
             var categorias = new List<Categoria>
             {
-                new Categoria { Nome = "Entradas", ImageUrl = "https://exemplo.com/img/entradas.jpg" },
-                new Categoria { Nome = "Pratos Principais", ImageUrl = "https://exemplo.com/img/principais.jpg" },
-                new Categoria { Nome = "Sobremesas", ImageUrl = "https://exemplo.com/img/sobremesas.jpg" },
-                new Categoria { Nome = "Bebidas", ImageUrl = "https://exemplo.com/img/bebidas.jpg" },
-                new Categoria { Nome = "Porções", ImageUrl = "https://exemplo.com/img/porcoes.jpg" }
+                new Categoria { Nome = "Entradas", ImagemUrl = "https://exemplo.com/img/entradas.jpg" },
+                new Categoria { Nome = "Pratos Principais", ImagemUrl = "https://exemplo.com/img/principais.jpg" },
+                new Categoria { Nome = "Sobremesas", ImagemUrl = "https://exemplo.com/img/sobremesas.jpg" },
+                new Categoria { Nome = "Bebidas", ImagemUrl = "https://exemplo.com/img/bebidas.jpg" },
+                new Categoria { Nome = "PorÃ§Ãµes", ImagemUrl = "https://exemplo.com/img/porcoes.jpg" }
             };
 
             await context.AddRangeAsync(categorias);
@@ -37,8 +37,8 @@ public static class DbInitializer
                 // Entradas
                 new Produto
                 {
-                    Nome = "Pão de Alho",
-                    Descricao = "Pão italiano com manteiga de alho e ervas",
+                    Nome = "Pï¿½o de Alho",
+                    Descricao = "Pï¿½o italiano com manteiga de alho e ervas",
                     Preco = 18.90m,
                     ImagemUrl = "https://exemplo.com/img/pao-alho.jpg",
                     Estoque = 50,
@@ -48,7 +48,7 @@ public static class DbInitializer
                 new Produto
                 {
                     Nome = "Salada Caesar",
-                    Descricao = "Alface romana, croutons, parmesão e molho caesar",
+                    Descricao = "Alface romana, croutons, parmesï¿½o e molho caesar",
                     Preco = 32.90m,
                     ImagemUrl = "https://exemplo.com/img/salada-caesar.jpg",
                     Estoque = 30,
@@ -69,8 +69,8 @@ public static class DbInitializer
                 },
                 new Produto
                 {
-                    Nome = "Salmão Grelhado",
-                    Descricao = "Salmão grelhado com legumes e purê de batatas",
+                    Nome = "Salmï¿½o Grelhado",
+                    Descricao = "Salmï¿½o grelhado com legumes e purï¿½ de batatas",
                     Preco = 78.90m,
                     ImagemUrl = "https://exemplo.com/img/salmao.jpg",
                     Estoque = 15,
@@ -104,7 +104,7 @@ public static class DbInitializer
                 new Produto
                 {
                     Nome = "Caipirinha",
-                    Descricao = "Cachaça, limão, açúcar e gelo",
+                    Descricao = "Cachaï¿½a, limï¿½o, aï¿½ï¿½car e gelo",
                     Preco = 22.90m,
                     ImagemUrl = "https://exemplo.com/img/caipirinha.jpg",
                     Estoque = 100,
@@ -122,11 +122,11 @@ public static class DbInitializer
                     CategoriaId = categorias[3].CategoriaId
                 },
 
-                // Porções
+                // Porï¿½ï¿½es
                 new Produto
                 {
                     Nome = "Batata Frita",
-                    Descricao = "Porção de batata frita crocante",
+                    Descricao = "Porï¿½ï¿½o de batata frita crocante",
                     Preco = 35.90m,
                     ImagemUrl = "https://exemplo.com/img/batata-frita.jpg",
                     Estoque = 40,
